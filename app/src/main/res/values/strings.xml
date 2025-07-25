@@ -1,3 +1,22 @@
 <resources>
-    <string name="app_name">financeApp</string>
+    <string name="app_name">财务记账</string>
+    <string name="income">收入</string>
+    <string name="expense">支出</string>
+    <string name="amount">金额</string>
+    <string name="category">分类</string>
+    <string name="note">备注</string>
+    <string name="date">日期</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="statistics">统计</string>
+    <string name="backup">备份</string>
+    <string name="restore">恢复</string>
+    <string name="total_income">总收入</string>
+    <string name="total_expense">总支出</string>
+    <string name="balance">余额</string>
+    <string name="this_month">本月</string>
+    <string name="this_year">今年</string>
+    <string name="custom_range">自定义范围</string>
 </resources>
