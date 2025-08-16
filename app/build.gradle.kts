@@ -57,6 +57,9 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.time.select)
     implementation(libs.documentfile)
+    implementation(libs.patrykandpatrick.compose)
+    implementation(libs.patrykandpatrick.compose.m3)
+    implementation(libs.patrykandpatrick.core)
     ksp(libs.androidx.room.compiler)
 
 

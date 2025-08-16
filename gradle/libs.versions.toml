@@ -13,6 +13,8 @@ timer = "0.9.0"
 file = "1.1.0"
 room = "2.7.2"
 ksp = "2.2.10-2.0.2"
+philJay = "v3.1.0"
+patrykandpatrick = "1.13.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +41,11 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 time-select = { group = "io.github.vanpra.compose-material-dialogs", name = "datetime", version.ref = "timer" }
 #文件操作
 documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "file" }
+#图表
+philJay = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "philJay" }
+patrykandpatrick-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "patrykandpatrick" }
+patrykandpatrick-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "patrykandpatrick" }
+patrykandpatrick-core = { group = "com.patrykandpatrick.vico", name = "core", version.ref = "patrykandpatrick" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
