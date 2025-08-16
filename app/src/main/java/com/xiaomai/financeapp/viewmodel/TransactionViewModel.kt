@@ -36,7 +36,7 @@ class TransactionViewModel(private val repository: TransactionRepository) : View
     fun getCategoriesByType(type: TransactionType): Flow<List<Category>> =
         repository.getCategoriesByType(type)
 
-    fun installTransaction(transaction: Transaction) {
+    fun insertTransaction(transaction: Transaction) {
         viewModelScope.launch {
             repository.insertTransaction(transaction)
         }

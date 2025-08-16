@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.xiaomai.financeapp.repository.TransactionRepository
+import com.xiaomai.financeapp.ui.screen.AddTransactionScreen
 import com.xiaomai.financeapp.ui.screen.HomeScreen
 import com.xiaomai.financeapp.viewmodel.TransactionViewModel
 
@@ -35,7 +36,6 @@ import com.xiaomai.financeapp.viewmodel.TransactionViewModel
 
 @Composable
 fun FinanceApp(
-    modifier: Modifier = Modifier,
     repository: TransactionRepository
 ) {
     val navController = rememberNavController()
@@ -54,14 +54,14 @@ fun FinanceApp(
                     BottomNavItem("statistics", "统计", Icons.Default.CheckCircle),
                     BottomNavItem("settings", "设置", Icons.Default.Settings)
                 )
-                items.forEach {item ->
+                items.forEach { item ->
                     NavigationBarItem(
                         icon = { Icon(item.icon, contentDescription = item.label) },
                         label = { Text(item.label) },
-                        selected = currentDestination?.hierarchy?.any{it.route==item.route} == true,
+                        selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
                         onClick = {
-                            navController.navigate(item.route){
-                                popUpTo(navController.graph.findStartDestination().id){
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
                                 launchSingleTop = true
@@ -80,6 +80,12 @@ fun FinanceApp(
         ) {
             composable("home") {
                 HomeScreen(viewModel = viewModel)
+            }
+
+            composable("add") {
+                AddTransactionScreen(
+                    viewModel = viewModel
+                )
             }
         }
     }
