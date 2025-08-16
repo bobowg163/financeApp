@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.xiaomai.financeapp.data.database.AppDatabase
 import com.xiaomai.financeapp.repository.TransactionRepository
+import com.xiaomai.financeapp.ui.FinanceApp
 import com.xiaomai.financeapp.ui.theme.FinanceAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
         repository = TransactionRepository(database.transactionDao(), database.categoryDao())
         setContent {
             FinanceAppTheme {
-
+                FinanceApp(repository = repository)
             }
         }
     }

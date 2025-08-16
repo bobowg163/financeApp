@@ -7,7 +7,7 @@ import com.xiaomai.financeapp.data.entity.Category
 import com.xiaomai.financeapp.data.entity.Transaction
 import com.xiaomai.financeapp.data.entity.TransactionType
 import kotlinx.coroutines.flow.Flow
-import java.sql.Date
+import java.util.Date
 
 class TransactionRepository(
     private val transactionDao: TransactionDao,

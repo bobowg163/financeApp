@@ -54,6 +54,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.navigation.compose)
+    implementation(libs.time.select)
+    implementation(libs.documentfile)
     ksp(libs.androidx.room.compiler)
 
 
