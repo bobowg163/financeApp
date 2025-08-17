@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.xiaomai.financeapp.repository.TransactionRepository
 import com.xiaomai.financeapp.ui.screen.AddTransactionScreen
 import com.xiaomai.financeapp.ui.screen.HomeScreen
+import com.xiaomai.financeapp.ui.screen.StatisticsScreen
 import com.xiaomai.financeapp.viewmodel.TransactionViewModel
 
 /**
@@ -84,6 +85,12 @@ fun FinanceApp(
 
             composable("add") {
                 AddTransactionScreen(
+                    viewModel = viewModel
+                )
+            }
+
+            composable("statistics") {
+                StatisticsScreen(
                     viewModel = viewModel
                 )
             }

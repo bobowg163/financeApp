@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.patrykandpatrick.compose)
     implementation(libs.patrykandpatrick.compose.m3)
     implementation(libs.patrykandpatrick.core)
+    implementation(libs.philJay)
     ksp(libs.androidx.room.compiler)
 
 

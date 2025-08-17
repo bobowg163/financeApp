@@ -44,7 +44,7 @@ import java.util.Locale
  * 包名: com.xiaomai.financeapp.ui.screen
  * 作者: bobowg
  * 日期: 2025/8/16 时间: 17:13
- * 备注：
+ * 备注：主页菜单，包括统计、最近交易
  **/
 
 @Composable
