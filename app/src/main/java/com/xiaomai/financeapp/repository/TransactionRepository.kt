@@ -13,7 +13,7 @@ class TransactionRepository(
     private val transactionDao: TransactionDao,
     private val categoryDao: CategoryDao
 ) {
-    fun getAllTransaction(): Flow<List<Transaction>> = transactionDao.getAllTransactions()
+    fun getAllTransactions(): Flow<List<Transaction>> = transactionDao.getAllTransactions()
 
     suspend fun getTransactionById(id: Long): Transaction? = transactionDao.getTransactionById(id)
 

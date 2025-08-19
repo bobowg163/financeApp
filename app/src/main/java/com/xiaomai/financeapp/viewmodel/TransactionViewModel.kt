@@ -27,7 +27,7 @@ import java.util.Date
 class TransactionViewModel(private val repository: TransactionRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(TransactionUiState())
     val uiState: StateFlow<TransactionUiState> = _uiState.asStateFlow()
-    val allTransactions: Flow<List<Transaction>> = repository.getAllTransaction()
+    val allTransactions: Flow<List<Transaction>> = repository.getAllTransactions()
     val allCategoires: Flow<List<Category>> = repository.getAllCategories()
 
     fun getTransactionsByDateRange(startDate: Date, endDate: Date): Flow<List<Transaction>> =

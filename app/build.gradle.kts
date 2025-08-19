@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -33,9 +35,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+        }
     }
+
 
     buildFeatures {
         compose = true
@@ -62,6 +67,8 @@ dependencies {
     implementation(libs.patrykandpatrick.core)
     implementation(libs.philJay)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.permissions)
+    implementation(libs.gson)
 
 
     testImplementation(libs.junit)
