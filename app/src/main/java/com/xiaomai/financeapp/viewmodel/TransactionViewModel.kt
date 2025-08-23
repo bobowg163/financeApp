@@ -24,7 +24,7 @@ import java.util.Date
  * 备注：
  **/
 
-class TransactionViewModel(private val repository: TransactionRepository) : ViewModel() {
+class TransactionViewModel(val repository: TransactionRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(TransactionUiState())
     val uiState: StateFlow<TransactionUiState> = _uiState.asStateFlow()
     val allTransactions: Flow<List<Transaction>> = repository.getAllTransactions()
