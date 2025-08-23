@@ -49,7 +49,8 @@ import java.util.Locale
 
 @Composable
 fun HomeScreen(
-    viewModel: TransactionViewModel
+    viewModel: TransactionViewModel,
+    onNavigateToEdit: (Long) -> Unit = {}
 ) {
     val transactions by viewModel.allTransactions.collectAsState(initial = emptyList())
     val uiState by viewModel.uiState.collectAsState()
@@ -118,7 +119,7 @@ fun HomeScreen(
             items(transactions) { transaction ->
                 TransactionItem(
                     transaction = transaction,
-                    onEdit = { /* TODO: 编辑功能 */ },
+                    onEdit = { onNavigateToEdit(transaction.id) },
                     onDelete = { viewModel.deleteTransaction(transaction) }
                 )
             }

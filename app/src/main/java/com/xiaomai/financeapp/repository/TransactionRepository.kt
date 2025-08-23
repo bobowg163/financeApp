@@ -2,11 +2,16 @@ package com.xiaomai.financeapp.repository
 
 import com.xiaomai.financeapp.data.dao.CategoryDao
 import com.xiaomai.financeapp.data.dao.CategoryTotal
+import com.xiaomai.financeapp.data.dao.DailyTrendData
+import com.xiaomai.financeapp.data.dao.MonthlyTrendData
 import com.xiaomai.financeapp.data.dao.TransactionDao
 import com.xiaomai.financeapp.data.entity.Category
+import com.xiaomai.financeapp.data.entity.DailyTrend
+import com.xiaomai.financeapp.data.entity.MonthlyTrend
 import com.xiaomai.financeapp.data.entity.Transaction
 import com.xiaomai.financeapp.data.entity.TransactionType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import java.util.Date
 
 class TransactionRepository(
@@ -67,5 +72,31 @@ class TransactionRepository(
     suspend fun deleteCategory(category: Category) = categoryDao.deleteCategory(category)
 
     suspend fun deleteNonDefaultCategories() = categoryDao.deleteNonDefaultCategories()
+    
+    // Chart data operations
+    fun getMonthlyTrends(): Flow<List<MonthlyTrend>> = flow {
+        val data = transactionDao.getMonthlyTrends()
+        emit(data.map { 
+            MonthlyTrend(
+                year = it.year.toInt(),
+                month = it.month.toInt(),
+                totalIncome = it.totalIncome,
+                totalExpense = it.totalExpense,
+                balance = it.balance
+            )
+        })
+    }
+    
+    fun getWeeklyTrends(startDate: Date, endDate: Date): Flow<List<DailyTrend>> = flow {
+        val data = transactionDao.getDailyTrends(startDate, endDate)
+        emit(data.map {
+            DailyTrend(
+                date = it.date,
+                totalIncome = it.totalIncome,
+                totalExpense = it.totalExpense,
+                balance = it.balance
+            )
+        })
+    }
 
 }

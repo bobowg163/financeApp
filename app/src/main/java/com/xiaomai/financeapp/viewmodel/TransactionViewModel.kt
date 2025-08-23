@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.xiaomai.financeapp.data.dao.CategoryTotal
 import com.xiaomai.financeapp.data.entity.Category
+import com.xiaomai.financeapp.data.entity.DailyTrend
+import com.xiaomai.financeapp.data.entity.MonthlyTrend
 import com.xiaomai.financeapp.data.entity.Transaction
 import com.xiaomai.financeapp.data.entity.TransactionType
 import com.xiaomai.financeapp.repository.TransactionRepository
@@ -35,6 +37,15 @@ class TransactionViewModel(val repository: TransactionRepository) : ViewModel() 
 
     fun getCategoriesByType(type: TransactionType): Flow<List<Category>> =
         repository.getCategoriesByType(type)
+    
+    suspend fun getTransactionById(id: Long): Transaction? =
+        repository.getTransactionById(id)
+        
+    fun getMonthlyTrends(): Flow<List<MonthlyTrend>> =
+        repository.getMonthlyTrends()
+    
+    fun getWeeklyTrends(startDate: Date, endDate: Date): Flow<List<DailyTrend>> =
+        repository.getWeeklyTrends(startDate, endDate)
 
     fun insertTransaction(transaction: Transaction) {
         viewModelScope.launch {

@@ -58,9 +58,53 @@ interface TransactionDao {
 
     @Query("DELETE FROM transactions")
     suspend fun deleteAllTransactions()
+    
+    @Query("""
+        SELECT 
+            strftime('%Y', date/1000, 'unixepoch', 'localtime') as year,
+            strftime('%m', date/1000, 'unixepoch', 'localtime') as month,
+            SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) as totalIncome,
+            SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) as totalExpense,
+            (SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) - 
+             SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END)) as balance
+        FROM transactions 
+        GROUP BY year, month 
+        ORDER BY year DESC, month DESC
+        LIMIT 12
+    """)
+    suspend fun getMonthlyTrends(): List<MonthlyTrendData>
+    
+    @Query("""
+        SELECT 
+            date,
+            SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) as totalIncome,
+            SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) as totalExpense,
+            (SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) - 
+             SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END)) as balance
+        FROM transactions 
+        WHERE date BETWEEN :startDate AND :endDate
+        GROUP BY DATE(date/1000, 'unixepoch', 'localtime') 
+        ORDER BY date ASC
+    """)
+    suspend fun getDailyTrends(startDate: Date, endDate: Date): List<DailyTrendData>
 }
 
 data class CategoryTotal(
     val category: String,
     val total: Double
+)
+
+data class MonthlyTrendData(
+    val year: String,
+    val month: String,
+    val totalIncome: Double,
+    val totalExpense: Double,
+    val balance: Double
+)
+
+data class DailyTrendData(
+    val date: Date,
+    val totalIncome: Double,
+    val totalExpense: Double,
+    val balance: Double
 )

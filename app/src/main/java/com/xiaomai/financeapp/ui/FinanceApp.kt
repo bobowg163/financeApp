@@ -21,6 +21,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.xiaomai.financeapp.data.entity.Transaction
 import com.xiaomai.financeapp.repository.TransactionRepository
 import com.xiaomai.financeapp.ui.screen.AddTransactionScreen
 import com.xiaomai.financeapp.ui.screen.HomeScreen
@@ -81,13 +90,39 @@ fun FinanceApp(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("home") {
-                HomeScreen(viewModel = viewModel)
+                HomeScreen(
+                    viewModel = viewModel,
+                    onNavigateToEdit = { transactionId ->
+                        navController.navigate("edit/$transactionId")
+                    }
+                )
             }
 
             composable("add") {
                 AddTransactionScreen(
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
                 )
+            }
+            
+            composable(
+                "edit/{transactionId}",
+                arguments = listOf(navArgument("transactionId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val transactionId = backStackEntry.arguments?.getLong("transactionId") ?: 0L
+                var transactionToEdit by remember { mutableStateOf<Transaction?>(null) }
+                
+                LaunchedEffect(transactionId) {
+                    transactionToEdit = viewModel.getTransactionById(transactionId)
+                }
+                
+                transactionToEdit?.let { transaction ->
+                    AddTransactionScreen(
+                        viewModel = viewModel,
+                        transactionToEdit = transaction,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
             }
 
             composable("statistics") {

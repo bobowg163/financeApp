@@ -36,16 +36,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.toColorInt
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.github.mikephil.charting.utils.MPPointF
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import com.xiaomai.financeapp.data.dao.CategoryTotal
+import com.xiaomai.financeapp.data.entity.ChartType
 import com.xiaomai.financeapp.data.entity.TransactionType
 import com.xiaomai.financeapp.ui.theme.ExpenseRed
 import com.xiaomai.financeapp.ui.theme.FinanceAppTheme
@@ -72,6 +83,7 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedPeriod by remember { mutableStateOf("本月") }
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
+    var selectedChartType by remember { mutableStateOf(ChartType.PIE_CHART) }
     var customStartDate by remember { mutableStateOf(Date()) }
     var customEndDate by remember { mutableStateOf(Date()) }
 
@@ -81,8 +93,50 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
 
     LaunchedEffect(selectedPeriod) {
         when (selectedPeriod) {
+            "本周" -> {
+                val calendar = Calendar.getInstance()
+                val today = calendar.get(Calendar.DAY_OF_WEEK)
+                val mondayOffset = if (today == Calendar.SUNDAY) -6 else Calendar.MONDAY - today
+                
+                calendar.add(Calendar.DAY_OF_MONTH, mondayOffset)
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val startDate = calendar.time
+                
+                calendar.add(Calendar.DAY_OF_MONTH, 6)
+                calendar.set(Calendar.HOUR_OF_DAY, 23)
+                calendar.set(Calendar.MINUTE, 59)
+                calendar.set(Calendar.SECOND, 59)
+                calendar.set(Calendar.MILLISECOND, 999)
+                val endDate = calendar.time
+                
+                viewModel.setSelectedDateRange(startDate, endDate)
+            }
+            
             "本月" -> {
                 viewModel.loadCurrentMonthStatistics()
+            }
+
+            "上月" -> {
+                val calendar = Calendar.getInstance()
+                calendar.add(Calendar.MONTH, -1)
+                calendar.set(Calendar.DAY_OF_MONTH, 1)
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val startDate = calendar.time
+
+                calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+                calendar.set(Calendar.HOUR_OF_DAY, 23)
+                calendar.set(Calendar.MINUTE, 59)
+                calendar.set(Calendar.SECOND, 59)
+                calendar.set(Calendar.MILLISECOND, 999)
+                val endDate = calendar.time
+
+                viewModel.setSelectedDateRange(startDate, endDate)
             }
 
             "今年" -> {
@@ -146,7 +200,7 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val periods = listOf("本月", "今年", "自定义")
+                        val periods = listOf("本周", "本月", "上月", "今年", "自定义")
                         periods.forEach { period ->
                             FilterChip(
                                 onClick = { selectedPeriod = period },
@@ -179,7 +233,8 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
 
                             OutlinedTextField(
                                 value = dateFormat.format(customEndDate),
-                                onValueChange = {},
+                                onValueChange = {
+                                },
                                 label = { Text("结束日期") },
                                 readOnly = true,
                                 modifier = Modifier.weight(1f),
@@ -273,13 +328,54 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
                 }
             }
         }
-        // 饼图
+        
+        // 图表类型选择器
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "图表类型",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            onClick = { selectedChartType = ChartType.PIE_CHART },
+                            label = { Text("饼图") },
+                            selected = selectedChartType == ChartType.PIE_CHART
+                        )
+                        FilterChip(
+                            onClick = { selectedChartType = ChartType.BAR_CHART },
+                            label = { Text("柱状图") },
+                            selected = selectedChartType == ChartType.BAR_CHART
+                        )
+                        FilterChip(
+                            onClick = { selectedChartType = ChartType.LINE_CHART },
+                            label = { Text("折线图") },
+                            selected = selectedChartType == ChartType.LINE_CHART
+                        )
+                    }
+                }
+            }
+        }
+        
+        // 图表显示区域
         item {
             val categoryTotals = if (selectedType == TransactionType.EXPENSE) {
                 uiState.expenseCategoryTotals
             } else {
                 uiState.incomeCategoryTotals
             }
+            
             if (categoryTotals.isNotEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -288,59 +384,30 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
+                        val chartTitle = when (selectedChartType) {
+                            ChartType.PIE_CHART -> "${if (selectedType == TransactionType.EXPENSE) "支出" else "收入"}分布"
+                            ChartType.BAR_CHART -> "${if (selectedType == TransactionType.EXPENSE) "支出" else "收入"}对比"
+                            ChartType.LINE_CHART -> "${if (selectedType == TransactionType.EXPENSE) "支出" else "收入"}趋势"
+                        }
+                        
                         Text(
-                            text = "${if (selectedType == TransactionType.EXPENSE) "支出" else "收入"}分布",
+                            text = chartTitle,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        AndroidView(
-                            factory = { context ->
-                                PieChart(context).apply {
-                                    setUsePercentValues(true)
-                                    description.isEnabled = false
-                                    setExtraOffsets(5f, 10f, 5f, 5f)
-                                    dragDecelerationFrictionCoef = 0.95f
-                                    isDrawHoleEnabled = true
-                                    setHoleColor(android.graphics.Color.WHITE)
-                                    setTransparentCircleColor(android.graphics.Color.WHITE)
-                                    setTransparentCircleAlpha(110)
-                                    holeRadius = 58f
-                                    transparentCircleRadius = 61f
-                                    setDrawCenterText(true)
-                                    rotationAngle = 0f
-                                    isRotationEnabled = true
-                                    isHighlightPerTapEnabled = true
-                                    legend.isEnabled = false
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp),
-                            update = { pieChart ->
-                                val entries = categoryTotals.map {
-                                    PieEntry(it.total.toFloat(), it.category)
-                                }
-                                val colors = generateColors(categoryTotals.size)
-                                val dataSet = PieDataSet(entries, "").apply {
-                                    setDrawIcons(false)
-                                    sliceSpace = 3f
-                                    iconsOffset = MPPointF(0f, 40f)
-                                    selectionShift = 5f
-                                    setColors(colors)
-                                }
-                                val data = PieData(dataSet).apply {
-                                    setValueFormatter(PercentFormatter())
-                                    setValueTextSize(11f)
-                                    setValueTextColor(android.graphics.Color.WHITE)
-                                }
-
-                                pieChart.data = data
-                                pieChart.highlightValue(null)
-                                pieChart.invalidate()
+                        when (selectedChartType) {
+                            ChartType.PIE_CHART -> {
+                                PieChartView(categoryTotals)
                             }
-                        )
+                            ChartType.BAR_CHART -> {
+                                BarChartView(categoryTotals)
+                            }
+                            ChartType.LINE_CHART -> {
+                                LineChartView(categoryTotals)
+                            }
+                        }
                     }
                 }
             }
@@ -493,4 +560,168 @@ private fun StatisticColumnPreview() {
         }
 
     }
+}
+
+@Composable
+fun PieChartView(categoryTotals: List<CategoryTotal>) {
+    AndroidView(
+        factory = { context ->
+            PieChart(context).apply {
+                setUsePercentValues(true)
+                description.isEnabled = false
+                setExtraOffsets(5f, 10f, 5f, 5f)
+                dragDecelerationFrictionCoef = 0.95f
+                isDrawHoleEnabled = true
+                setHoleColor(android.graphics.Color.WHITE)
+                setTransparentCircleColor(android.graphics.Color.WHITE)
+                setTransparentCircleAlpha(110)
+                holeRadius = 58f
+                transparentCircleRadius = 61f
+                setDrawCenterText(true)
+                rotationAngle = 0f
+                isRotationEnabled = true
+                isHighlightPerTapEnabled = true
+                legend.isEnabled = false
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        update = { pieChart ->
+            val entries = categoryTotals.map {
+                PieEntry(it.total.toFloat(), it.category)
+            }
+            val colors = generateColors(categoryTotals.size)
+            val dataSet = PieDataSet(entries, "").apply {
+                setDrawIcons(false)
+                sliceSpace = 3f
+                iconsOffset = MPPointF(0f, 40f)
+                selectionShift = 5f
+                setColors(colors)
+            }
+            val data = PieData(dataSet).apply {
+                setValueFormatter(PercentFormatter())
+                setValueTextSize(11f)
+                setValueTextColor(android.graphics.Color.WHITE)
+            }
+
+            pieChart.data = data
+            pieChart.highlightValue(null)
+            pieChart.invalidate()
+        }
+    )
+}
+
+@Composable
+fun BarChartView(categoryTotals: List<CategoryTotal>) {
+    AndroidView(
+        factory = { context ->
+            BarChart(context).apply {
+                description.isEnabled = false
+                setDrawGridBackground(false)
+                setDrawBarShadow(false)
+                setDrawValueAboveBar(true)
+                setPinchZoom(false)
+                setDrawGridBackground(false)
+                
+                xAxis.apply {
+                    position = XAxis.XAxisPosition.BOTTOM
+                    setDrawGridLines(false)
+                    granularity = 1f
+                    labelCount = categoryTotals.size
+                }
+                
+                axisLeft.apply {
+                    setDrawGridLines(true)
+                    axisMinimum = 0f
+                }
+                
+                axisRight.isEnabled = false
+                legend.isEnabled = false
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        update = { barChart ->
+            val entries = categoryTotals.mapIndexed { index, categoryTotal ->
+                BarEntry(index.toFloat(), categoryTotal.total.toFloat())
+            }
+            
+            val dataSet = BarDataSet(entries, "").apply {
+                colors = generateColors(categoryTotals.size)
+                setDrawValues(true)
+                valueTextSize = 10f
+            }
+            
+            val data = BarData(dataSet).apply {
+                barWidth = 0.8f
+            }
+            
+            barChart.apply {
+                this.data = data
+                xAxis.valueFormatter = IndexAxisValueFormatter(categoryTotals.map { it.category })
+                animateY(1000)
+                invalidate()
+            }
+        }
+    )
+}
+
+@Composable
+fun LineChartView(categoryTotals: List<CategoryTotal>) {
+    AndroidView(
+        factory = { context ->
+            LineChart(context).apply {
+                description.isEnabled = false
+                setDrawGridBackground(false)
+                setTouchEnabled(true)
+                isDragEnabled = true
+                setScaleEnabled(true)
+                setPinchZoom(false)
+                
+                xAxis.apply {
+                    position = XAxis.XAxisPosition.BOTTOM
+                    setDrawGridLines(false)
+                    granularity = 1f
+                    labelCount = categoryTotals.size
+                }
+                
+                axisLeft.apply {
+                    setDrawGridLines(true)
+                    axisMinimum = 0f
+                }
+                
+                axisRight.isEnabled = false
+                legend.isEnabled = false
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        update = { lineChart ->
+            val entries = categoryTotals.mapIndexed { index, categoryTotal ->
+                Entry(index.toFloat(), categoryTotal.total.toFloat())
+            }
+            
+            val dataSet = LineDataSet(entries, "").apply {
+                color = ExpenseRed.hashCode()
+                lineWidth = 2f
+                circleRadius = 4f
+                setCircleColor(ExpenseRed.hashCode())
+                setDrawCircleHole(false)
+                setDrawValues(true)
+                valueTextSize = 10f
+            }
+            
+            val data = LineData(dataSet)
+            
+            lineChart.apply {
+                this.data = data
+                xAxis.valueFormatter = IndexAxisValueFormatter(categoryTotals.map { it.category })
+                animateX(1000)
+                invalidate()
+            }
+        }
+    )
 }

@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,17 +61,27 @@ import androidx.core.graphics.toColorInt
  **/
 
 @Composable
-fun AddTransactionScreen(viewModel: TransactionViewModel) {
-    var amount by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
+fun AddTransactionScreen(
+    viewModel: TransactionViewModel,
+    transactionToEdit: Transaction? = null,
+    onNavigateBack: () -> Unit = {}
+) {
+    var amount by remember { mutableStateOf(transactionToEdit?.amount?.toString() ?: "") }
+    var selectedType by remember { mutableStateOf(transactionToEdit?.type ?: TransactionType.EXPENSE) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
-    var note by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(Date()) }
+    var note by remember { mutableStateOf(transactionToEdit?.note ?: "") }
+    var selectedDate by remember { mutableStateOf(transactionToEdit?.date ?: Date()) }
 
     val categories by viewModel.getCategoriesByType(selectedType)
         .collectAsState(initial = emptyList())
     val dateDialogState = rememberMaterialDialogState()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    
+    LaunchedEffect(categories, transactionToEdit) {
+        if (transactionToEdit != null && categories.isNotEmpty()) {
+            selectedCategory = categories.find { it.name == transactionToEdit.category }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -79,7 +90,7 @@ fun AddTransactionScreen(viewModel: TransactionViewModel) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "添加交易",
+            text = if (transactionToEdit == null) "添加交易" else "编辑交易",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -191,26 +202,37 @@ fun AddTransactionScreen(viewModel: TransactionViewModel) {
         Button(
             onClick = {
                 if (amount.isNotEmpty() && selectedCategory != null) {
-                    val transaction = Transaction(
-                        amount = amount.toDoubleOrNull() ?: 0.0,
-                        type = selectedType,
-                        category = selectedCategory!!.name,
-                        note = note,
-                        date = selectedDate
-                    )
-                    viewModel.insertTransaction(transaction)
-
-                    // 重置表单
-                    amount = ""
-                    note = ""
-                    selectedDate = Date()
-                    selectedCategory = null
+                    val transaction = if (transactionToEdit != null) {
+                        transactionToEdit.copy(
+                            amount = amount.toDoubleOrNull() ?: 0.0,
+                            type = selectedType,
+                            category = selectedCategory!!.name,
+                            note = note,
+                            date = selectedDate
+                        )
+                    } else {
+                        Transaction(
+                            amount = amount.toDoubleOrNull() ?: 0.0,
+                            type = selectedType,
+                            category = selectedCategory!!.name,
+                            note = note,
+                            date = selectedDate
+                        )
+                    }
+                    
+                    if (transactionToEdit != null) {
+                        viewModel.updateTransaction(transaction)
+                    } else {
+                        viewModel.insertTransaction(transaction)
+                    }
+                    
+                    onNavigateBack()
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = amount.isNotEmpty() && selectedCategory != null
         ) {
-            Text("保存")
+            Text(if (transactionToEdit == null) "保存" else "更新")
         }
     }
 
