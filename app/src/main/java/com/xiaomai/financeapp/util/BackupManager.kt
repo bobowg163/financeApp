@@ -108,6 +108,28 @@ class BackupManager(private val context: Context, private val repository: Transa
     }
 
     /**
+     * 获取所有自动备份文件列表
+     **/
+    fun getAutoBackupFiles(): List<BackupFile> {
+        return try {
+            val backupFiles = context.filesDir.listFiles { file ->
+                file.name.startsWith("auto_backup_") && file.name.endsWith(".json")
+            }?.sortedByDescending { it.lastModified() } ?: emptyList()
+
+            backupFiles.map { file ->
+                BackupFile(
+                    name = file.name,
+                    path = file.absolutePath,
+                    size = file.length(),
+                    lastModified = Date(file.lastModified())
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    /**
      * 清理旧的自动备份文件（保留最近5个）
      **/
     private fun cleanOldBackups() {

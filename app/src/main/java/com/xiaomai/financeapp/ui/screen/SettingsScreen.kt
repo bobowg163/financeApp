@@ -97,6 +97,9 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
     
     LaunchedEffect(Unit) {
         backupManager = BackupManager(context, viewModel.repository)
+        backupManager?.let { manager ->
+            autoBackupFiles = manager.getAutoBackupFiles()
+        }
     }
     
     Column(
@@ -160,6 +163,8 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
                                 scope.launch {
                                     val result = manager.createAutoBackup()
                                     backupMessage = if (result.isSuccess) {
+                                        // 刷新备份文件列表
+                                        autoBackupFiles = manager.getAutoBackupFiles()
                                         result.getOrNull() ?: "自动备份创建成功"
                                     } else {
                                         result.exceptionOrNull()?.message ?: "自动备份创建失败"
