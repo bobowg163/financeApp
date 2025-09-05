@@ -126,6 +126,7 @@ class BackupManager(private val context: Context, private val repository: Transa
             }
         } catch (e: Exception) {
             emptyList()
+
         }
     }
 
