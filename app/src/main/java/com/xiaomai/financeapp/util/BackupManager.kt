@@ -73,6 +73,55 @@ class BackupManager(private val context: Context, private val repository: Transa
 
     }
 
+    suspend fun importFromAutoBackup(backupFile: BackupFile): Result<String> {
+        return try {
+            val file = java.io.File(backupFile.path)
+            if (!file.exists()) {
+                return Result.failure(IOException("备份文件不存在: ${backupFile.name}"))
+            }
+
+            val jsonString = file.readText()
+            val backupData = gson.fromJson(jsonString, BackupData::class.java)
+            
+            //清空数据
+            repository.deleteAllTransactions()
+            repository.deleteNonDefaultCategories()
+            
+            //导入分类
+            backupData.categories.forEach {category ->
+                if (!category.isDefault){
+                    repository.insertCategory(category.copy(id = 0))
+                }
+            }
+
+            //导入交易记录
+            backupData.transactions.forEach {transaction ->
+                repository.insertTransaction(transaction.copy(id = 0))
+            }
+
+            Result.success("数据导入成功，共导入 ${backupData.transactions.size} 条记录!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    fun deleteBackupFile(backupFile: BackupFile): Result<String> {
+        return try {
+            val file = java.io.File(backupFile.path)
+            if (file.exists()) {
+                if (file.delete()) {
+                    Result.success("备份文件删除成功: ${backupFile.name}")
+                } else {
+                    Result.failure(IOException("无法删除备份文件: ${backupFile.name}"))
+                }
+            } else {
+                Result.failure(IOException("备份文件不存在: ${backupFile.name}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
     fun generateBackupFileName():String{
         return "财务记账_备份_${dateFormat.format(Date())}.json"
@@ -131,15 +180,15 @@ class BackupManager(private val context: Context, private val repository: Transa
     }
 
     /**
-     * 清理旧的自动备份文件（保留最近5个）
+     * 清理旧的自动备份文件（保留最近指定数量的文件）
      **/
-    private fun cleanOldBackups() {
+    fun cleanOldBackups(retentionCount: Int = 5) {
         try {
             val backupFiles = context.filesDir.listFiles { file ->
                 file.name.startsWith("auto_backup_") && file.name.endsWith(".json")
             }?.sortedByDescending { it.lastModified() }
 
-            backupFiles?.drop(5)?.forEach { file ->
+            backupFiles?.drop(retentionCount)?.forEach { file ->
                 file.delete()
             }
         } catch (e: Exception) {

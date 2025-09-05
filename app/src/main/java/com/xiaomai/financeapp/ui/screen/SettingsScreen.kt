@@ -2,6 +2,7 @@ package com.xiaomai.financeapp.ui.screen
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,16 +14,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,6 +62,11 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
     var backupMessage by remember { mutableStateOf("") }
     var showMessageDialog by remember { mutableStateOf(false) }
     var autoBackupFiles by remember { mutableStateOf<List<BackupFile>>(emptyList()) }
+    var selectedBackupFile by remember { mutableStateOf<BackupFile?>(null) }
+    var showImportConfirmDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var autoBackupEnabled by remember { mutableStateOf(false) }
+    var autoBackupInterval by remember { mutableIntStateOf(7) } // days
     
     // 导出文件选择器
     val exportLauncher = rememberLauncherForActivityResult(
@@ -217,6 +230,92 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
             }
         }
         
+        // 定期备份设置卡片
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "定期自动备份",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "启用定期自动备份功能，定期为您的数据创建备份",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "定期备份",
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text("启用定期自动备份")
+                    }
+                    Switch(
+                        checked = autoBackupEnabled,
+                        onCheckedChange = { enabled ->
+                            autoBackupEnabled = enabled
+                            scope.launch {
+                                backupManager?.let { manager ->
+                                    if (enabled) {
+                                        val result = manager.createAutoBackup()
+                                        backupMessage = if (result.isSuccess) {
+                                            autoBackupFiles = manager.getAutoBackupFiles()
+                                            result.getOrNull() ?: "定期备份已启用，首次备份创建成功"
+                                        } else {
+                                            result.exceptionOrNull()?.message ?: "定期备份启用失败"
+                                        }
+                                    } else {
+                                        backupMessage = "定期备份已禁用"
+                                    }
+                                    showMessageDialog = true
+                                }
+                            }
+                        }
+                    )
+                }
+                
+                if (autoBackupEnabled) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("备份间隔：${autoBackupInterval} 天")
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "系统将每隔 $autoBackupInterval 天自动创建一次备份文件",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        
         // 自动备份文件列表
         Card(
             modifier = Modifier
@@ -248,25 +347,148 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
                                 .padding(vertical = 4.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
-                            Column(
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(12.dp)
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = file.name,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                Text(
-                                    text = "大小: ${file.size} bytes",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            selectedBackupFile = file
+                                            showImportConfirmDialog = true
+                                        }
+                                ) {
+                                    Text(
+                                        text = file.name,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "大小: ${file.size} bytes",
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                    Text(
+                                        text = "点击导入此备份文件",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        selectedBackupFile = file
+                                        showDeleteConfirmDialog = true
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "删除备份文件",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+    
+    // 删除确认对话框
+    if (showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDeleteConfirmDialog = false
+                selectedBackupFile = null
+            },
+            title = { Text("确认删除") },
+            text = { 
+                Text("确定要删除备份文件 \"${selectedBackupFile?.name}\" 吗？\n\n此操作不可撤销，请谨慎操作。")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        selectedBackupFile?.let { file ->
+                            backupManager?.let { manager ->
+                                scope.launch {
+                                    val result = manager.deleteBackupFile(file)
+                                    backupMessage = if (result.isSuccess) {
+                                        // 刷新备份文件列表
+                                        autoBackupFiles = manager.getAutoBackupFiles()
+                                        result.getOrNull() ?: "删除成功"
+                                    } else {
+                                        result.exceptionOrNull()?.message ?: "删除失败"
+                                    }
+                                    showMessageDialog = true
+                                    showDeleteConfirmDialog = false
+                                    selectedBackupFile = null
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    Text("删除")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { 
+                        showDeleteConfirmDialog = false
+                        selectedBackupFile = null
+                    }
+                ) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+    
+    // 导入确认对话框
+    if (showImportConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showImportConfirmDialog = false
+                selectedBackupFile = null
+            },
+            title = { Text("确认导入") },
+            text = { 
+                Text("确定要导入备份文件 \"${selectedBackupFile?.name}\" 吗？\n\n注意：导入将会覆盖当前所有数据，请谨慎操作。")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        selectedBackupFile?.let { file ->
+                            backupManager?.let { manager ->
+                                scope.launch {
+                                    val result = manager.importFromAutoBackup(file)
+                                    backupMessage = if (result.isSuccess) {
+                                        result.getOrNull() ?: "导入成功"
+                                    } else {
+                                        result.exceptionOrNull()?.message ?: "导入失败"
+                                    }
+                                    showMessageDialog = true
+                                    showImportConfirmDialog = false
+                                    selectedBackupFile = null
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    Text("导入")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { 
+                        showImportConfirmDialog = false
+                        selectedBackupFile = null
+                    }
+                ) {
+                    Text("取消")
+                }
+            }
+        )
     }
     
     // 消息对话框
