@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.xiaomai.financeapp.data.entity.Transaction
+import com.xiaomai.financeapp.repository.SettingRepository
 import com.xiaomai.financeapp.repository.TransactionRepository
 import com.xiaomai.financeapp.ui.screen.AddTransactionScreen
 import com.xiaomai.financeapp.ui.screen.HomeScreen
@@ -47,11 +48,12 @@ import com.xiaomai.financeapp.viewmodel.TransactionViewModel
 
 @Composable
 fun FinanceApp(
-    repository: TransactionRepository
+    transactionRepository: TransactionRepository,
+    settingRepository: SettingRepository
 ) {
     val navController = rememberNavController()
     val viewModel: TransactionViewModel = viewModel(
-        factory = TransactionViewModel.Factory(repository)
+        factory = TransactionViewModel.Factory(transactionRepository, settingRepository)
     )
 
     Scaffold(

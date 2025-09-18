@@ -20,6 +20,7 @@ class TransactionRepository(
 ) {
     fun getAllTransactions(): Flow<List<Transaction>> = transactionDao.getAllTransactions()
 
+
     suspend fun getTransactionById(id: Long): Transaction? = transactionDao.getTransactionById(id)
 
     fun getTransactionsByDateRange(startDate: Date, endDate: Date): Flow<List<Transaction>> =

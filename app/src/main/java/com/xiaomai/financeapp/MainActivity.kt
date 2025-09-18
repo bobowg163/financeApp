@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.xiaomai.financeapp.data.database.AppDatabase
+import com.xiaomai.financeapp.repository.SettingRepository
 import com.xiaomai.financeapp.repository.TransactionRepository
 import com.xiaomai.financeapp.ui.FinanceApp
 import com.xiaomai.financeapp.ui.theme.FinanceAppTheme
@@ -13,16 +14,18 @@ import com.xiaomai.financeapp.ui.theme.FinanceAppTheme
 class MainActivity : ComponentActivity() {
 
     private lateinit var database: AppDatabase
-    private lateinit var repository: TransactionRepository
+    private lateinit var transactionRepository: TransactionRepository
+    private lateinit var settingRepository: SettingRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         database = AppDatabase.getDatabase(this, lifecycleScope)
-        repository = TransactionRepository(database.transactionDao(), database.categoryDao())
+        transactionRepository = TransactionRepository(database.transactionDao(), database.categoryDao())
+        settingRepository = SettingRepository(database.settingDao())
         setContent {
             FinanceAppTheme {
-                FinanceApp(repository = repository)
+                FinanceApp(transactionRepository = transactionRepository, settingRepository = settingRepository)
             }
         }
     }

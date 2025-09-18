@@ -9,6 +9,7 @@ import com.xiaomai.financeapp.data.entity.DailyTrend
 import com.xiaomai.financeapp.data.entity.MonthlyTrend
 import com.xiaomai.financeapp.data.entity.Transaction
 import com.xiaomai.financeapp.data.entity.TransactionType
+import com.xiaomai.financeapp.repository.SettingRepository
 import com.xiaomai.financeapp.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,24 +27,30 @@ import java.util.Date
  * 备注：
  **/
 
-class TransactionViewModel(val repository: TransactionRepository) : ViewModel() {
+class TransactionViewModel(
+    val repository: TransactionRepository,
+    private val settingRepository: SettingRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(TransactionUiState())
     val uiState: StateFlow<TransactionUiState> = _uiState.asStateFlow()
     val allTransactions: Flow<List<Transaction>> = repository.getAllTransactions()
-    val allCategoires: Flow<List<Category>> = repository.getAllCategories()
+
+    // 1. 为 autoBackupEnabled 创建 StateFlow
+    private val _autoBackupEnabled = MutableStateFlow(true) // 默认值
+    val autoBackupEnabled: StateFlow<Boolean> = _autoBackupEnabled.asStateFlow()
 
     fun getTransactionsByDateRange(startDate: Date, endDate: Date): Flow<List<Transaction>> =
         repository.getTransactionsByDateRange(startDate, endDate)
 
     fun getCategoriesByType(type: TransactionType): Flow<List<Category>> =
         repository.getCategoriesByType(type)
-    
+
     suspend fun getTransactionById(id: Long): Transaction? =
         repository.getTransactionById(id)
-        
+
     fun getMonthlyTrends(): Flow<List<MonthlyTrend>> =
         repository.getMonthlyTrends()
-    
+
     fun getWeeklyTrends(startDate: Date, endDate: Date): Flow<List<DailyTrend>> =
         repository.getWeeklyTrends(startDate, endDate)
 
@@ -115,17 +122,35 @@ class TransactionViewModel(val repository: TransactionRepository) : ViewModel() 
         loadStatistics(startDate, endDate)
     }
 
-    class Factory(private val repository: TransactionRepository) : ViewModelProvider.Factory {
+    init {
+        viewModelScope.launch {
+            settingRepository.getAutoBackupEnabled().collect { isEnabled ->
+                isEnabled?.let { enabled ->
+                    _autoBackupEnabled.value = enabled
+                }
+            }
+        }
+    }
+
+    suspend fun updateAutoBackupEnabled(enabled: Boolean) {
+        settingRepository.updateAutoBackupEnabled(enabled)
+        _autoBackupEnabled.value = enabled
+    }
+    class Factory(
+        private val repository: TransactionRepository,
+        private val settingRepository: SettingRepository
+    ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(TransactionViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return TransactionViewModel(repository) as T
+                return TransactionViewModel(repository, settingRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 
 }
+
 
 data class TransactionUiState(
     val totalIncome: Double = 0.0,

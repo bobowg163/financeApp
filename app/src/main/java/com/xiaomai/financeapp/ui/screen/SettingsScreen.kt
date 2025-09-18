@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -83,8 +84,9 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
     var selectedBackupFile by remember { mutableStateOf<BackupFile?>(null) }
     var showImportConfirmDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
-    var autoBackupEnabled by remember { mutableStateOf(false) }
     var autoBackupInterval by remember { mutableIntStateOf(7) } // days
+
+    val autoBackupEnabled by viewModel.autoBackupEnabled.collectAsState()
 
     // 导出文件选择器
     val exportLauncher = rememberLauncherForActivityResult(
@@ -302,8 +304,8 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
                             Switch(
                                 checked = autoBackupEnabled,
                                 onCheckedChange = { enabled ->
-                                    autoBackupEnabled = enabled
                                     scope.launch {
+                                        viewModel.updateAutoBackupEnabled(enabled)
                                         backupManager?.let { manager ->
                                             if (enabled) {
                                                 val result = manager.createAutoBackup()

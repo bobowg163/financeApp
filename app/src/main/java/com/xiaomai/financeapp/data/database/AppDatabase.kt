@@ -8,22 +8,25 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.xiaomai.financeapp.data.converter.Converters
 import com.xiaomai.financeapp.data.dao.CategoryDao
+import com.xiaomai.financeapp.data.dao.SettingDao
 import com.xiaomai.financeapp.data.dao.TransactionDao
 import com.xiaomai.financeapp.data.entity.Category
+import com.xiaomai.financeapp.data.entity.Setting
 import com.xiaomai.financeapp.data.entity.Transaction
 import com.xiaomai.financeapp.data.entity.TransactionType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [Transaction::class, Category::class],
-    version = 1,
+    entities = [Transaction::class, Category::class, Setting::class],
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun settingDao(): SettingDao
 
     companion object {
         @Volatile
@@ -47,13 +50,13 @@ abstract class AppDatabase : RoomDatabase() {
                 super.onCreate(db)
                 INSTANCE?.let {database ->
                     scope.launch {
-                        populateDatabase(database.categoryDao())
+                        populateDatabase(database.categoryDao(), database.settingDao())
                     }
                 }
             }
         }
 
-        suspend fun populateDatabase(categoryDao: CategoryDao){
+        suspend fun populateDatabase(categoryDao: CategoryDao, settingDao: SettingDao){
             // 预设收入分类
             val incomeCategories = listOf(
                 Category(name = "工资", type = TransactionType.INCOME, color = "#4CAF50", icon = "💰", isDefault = true),
@@ -78,6 +81,10 @@ abstract class AppDatabase : RoomDatabase() {
             )
             incomeCategories.forEach { categoryDao.insertCategory(it) }
             expenseCategories.forEach { categoryDao.insertCategory(it) }
+
+            // 创建默认设置
+            val defaultSetting = Setting(autoBackup = false)
+            settingDao.insertSetting(defaultSetting)
         }
     }
 }

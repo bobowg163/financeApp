@@ -8,6 +8,7 @@ import androidx.room.Update
 import com.xiaomai.financeapp.data.entity.Transaction
 import com.xiaomai.financeapp.data.entity.TransactionType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.util.Date
 
 @Dao
