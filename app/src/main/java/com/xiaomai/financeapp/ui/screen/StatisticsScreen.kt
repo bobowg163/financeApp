@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,6 +57,7 @@ import com.github.mikephil.charting.utils.MPPointF
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
+import com.xiaomai.financeapp.R
 import com.xiaomai.financeapp.data.dao.CategoryTotal
 import com.xiaomai.financeapp.data.entity.ChartType
 import com.xiaomai.financeapp.data.entity.TransactionType
@@ -162,7 +164,20 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
             }
 
             "自定义" -> {
-                viewModel.setSelectedDateRange(customStartDate, customEndDate)
+                // 设置默认的日期范围（最近30天）
+                val calendar = Calendar.getInstance()
+                val endDate = calendar.time
+
+                calendar.add(Calendar.DAY_OF_MONTH, -30)
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val startDate = calendar.time
+
+                customStartDate = startDate
+                customEndDate = endDate
+                viewModel.setSelectedDateRange(startDate, endDate)
             }
         }
 
@@ -438,10 +453,12 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
         }
     ) {
         datepicker(
-            initialDate = LocalDate.now(),
+            initialDate = customStartDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
             title = "选择开始日期"
         ) { date ->
-            customStartDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+            val newStartDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+            customStartDate = newStartDate
+            viewModel.setSelectedDateRange(newStartDate, customEndDate)
         }
     }
 
@@ -453,10 +470,12 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
         }
     ) {
         datepicker(
-            initialDate = LocalDate.now(),
+            initialDate = customEndDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
             title = "选择结束日期"
         ) { date ->
-            customEndDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+            val newEndDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+            customEndDate = newEndDate
+            viewModel.setSelectedDateRange(customStartDate, newEndDate)
         }
     }
 }
@@ -548,7 +567,7 @@ private fun StatisticColumnPreview() {
     FinanceAppTheme {
         Column {
             StatisticColumn(
-                label = "总收入",
+                label = stringResource(R.string.total_income),
                 amount = 1000.0,
                 color = IncomeGreen
             )

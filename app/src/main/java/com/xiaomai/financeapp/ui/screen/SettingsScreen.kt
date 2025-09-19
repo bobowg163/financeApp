@@ -43,8 +43,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.xiaomai.financeapp.R
 import com.xiaomai.financeapp.util.BackupFile
 import com.xiaomai.financeapp.util.BackupManager
 import com.xiaomai.financeapp.viewmodel.TransactionViewModel
@@ -143,7 +145,7 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "设置",
+            text = stringResource(R.string.setting),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 24.dp)
@@ -164,14 +166,14 @@ fun SettingsScreen(viewModel: TransactionViewModel) {
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = "数据备份",
+                            text = stringResource(R.string.backup),
                             style = MaterialTheme.typography.titleLarge
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "导出所有数据到JSON文件，以便在其他设备上恢复",
+                            text = stringResource(R.string.export_devices),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )

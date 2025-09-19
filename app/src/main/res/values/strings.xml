@@ -19,4 +19,15 @@
     <string name="this_month">本月</string>
     <string name="this_year">今年</string>
     <string name="custom_range">自定义范围</string>
+    <string name="months_overview">本月概览</string>
+    <string name="recent_transactions">最近交易</string>
+    <string name="add_transaction">添加交易</string>
+    <string name="edit_transaction">编辑交易</string>
+    <string name="select_date">选择日期</string>
+    <string name="optional">可选</string>
+    <string name="transaction_type">交易类型</string>
+    <string name="update">更新</string>
+    <string name="sure">确定</string>
+    <string name="setting">设置</string>
+    <string name="export_devices">导出所有数据到JSON文件，以便在其他设备上恢复</string>
 </resources>

@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -51,6 +52,7 @@ import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 import androidx.core.graphics.toColorInt
+import com.xiaomai.financeapp.R
 
 /**
  * 项目: financeApp
@@ -90,7 +92,7 @@ fun AddTransactionScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = if (transactionToEdit == null) "添加交易" else "编辑交易",
+            text = if (transactionToEdit == null) stringResource(R.string.add_transaction) else stringResource(R.string.edit_transaction),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -104,7 +106,7 @@ fun AddTransactionScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "交易类型",
+                    text = stringResource(R.string.transaction_type),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium
                 )
@@ -116,13 +118,13 @@ fun AddTransactionScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     TransactionTypeButton(
-                        text = "支出",
+                        text = stringResource(R.string.expense),
                         selected = selectedType == TransactionType.EXPENSE,
                         color = ExpenseRed,
                         onClick = { selectedType = TransactionType.EXPENSE }
                     )
                     TransactionTypeButton(
-                        text = "收入",
+                        text = stringResource(R.string.income),
                         selected = selectedType == TransactionType.INCOME,
                         color = IncomeGreen,
                         onClick = { selectedType = TransactionType.INCOME }
@@ -165,7 +167,7 @@ fun AddTransactionScreen(
         OutlinedTextField(
             value = amount,
             onValueChange = { amount = it },
-            label = { Text("金额") },
+            label = { Text(stringResource(R.string.amount)) },
             placeholder = { Text("0.00") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth(),
@@ -176,12 +178,12 @@ fun AddTransactionScreen(
         OutlinedTextField(
             value = dateFormat.format(selectedDate),
             onValueChange = { },
-            label = { Text("日期") },
+            label = { Text(stringResource(R.string.date)) },
             modifier = Modifier.fillMaxWidth(),
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { dateDialogState.show() }) {
-                    Icon(Icons.Default.DateRange, contentDescription = "选择日期")
+                    Icon(Icons.Default.DateRange, contentDescription = stringResource(R.string.select_date))
                 }
             }
         )
@@ -190,8 +192,8 @@ fun AddTransactionScreen(
         OutlinedTextField(
             value = note,
             onValueChange = { note = it },
-            label = { Text("备注") },
-            placeholder = { Text("可选") },
+            label = { Text(stringResource(R.string.note)) },
+            placeholder = { Text(stringResource(R.string.optional)) },
             modifier = Modifier.fillMaxWidth(),
             maxLines = 3
         )
@@ -202,23 +204,20 @@ fun AddTransactionScreen(
         Button(
             onClick = {
                 if (amount.isNotEmpty() && selectedCategory != null) {
-                    val transaction = if (transactionToEdit != null) {
-                        transactionToEdit.copy(
+                    val transaction = transactionToEdit?.copy(
+                        amount = amount.toDoubleOrNull() ?: 0.0,
+                        type = selectedType,
+                        category = selectedCategory!!.name,
+                        note = note,
+                        date = selectedDate
+                    )
+                        ?: Transaction(
                             amount = amount.toDoubleOrNull() ?: 0.0,
                             type = selectedType,
                             category = selectedCategory!!.name,
                             note = note,
                             date = selectedDate
                         )
-                    } else {
-                        Transaction(
-                            amount = amount.toDoubleOrNull() ?: 0.0,
-                            type = selectedType,
-                            category = selectedCategory!!.name,
-                            note = note,
-                            date = selectedDate
-                        )
-                    }
                     
                     if (transactionToEdit != null) {
                         viewModel.updateTransaction(transaction)
@@ -232,7 +231,7 @@ fun AddTransactionScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = amount.isNotEmpty() && selectedCategory != null
         ) {
-            Text(if (transactionToEdit == null) "保存" else "更新")
+            Text(if (transactionToEdit == null) stringResource(R.string.save) else stringResource(R.string.update))
         }
     }
 
@@ -240,13 +239,13 @@ fun AddTransactionScreen(
     MaterialDialog(
         dialogState = dateDialogState,
         buttons = {
-            positiveButton(text = "确定")
-            negativeButton(text = "取消")
+            positiveButton(text = stringResource(R.string.sure))
+            negativeButton(text = stringResource(R.string.cancel))
         }
     ) {
         datepicker(
             initialDate = LocalDate.now(),
-            title = "选择日期"
+            title = stringResource(R.string.select_date)
         ) { date ->
             selectedDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
         }

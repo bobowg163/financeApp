@@ -26,9 +26,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.xiaomai.financeapp.R
 import com.xiaomai.financeapp.data.entity.Transaction
 import com.xiaomai.financeapp.data.entity.TransactionType
 import com.xiaomai.financeapp.ui.theme.ExpenseRed
@@ -74,7 +76,7 @@ fun HomeScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "本月概览",
+                    text = stringResource(R.string.months_overview),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -85,17 +87,17 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatisticItem(
-                        label = "总收入",
+                        label = stringResource(R.string.total_income),
                         amount = uiState.totalIncome,
                         color = IncomeGreen
                     )
                     StatisticItem(
-                        label = "总支出",
+                        label = stringResource(R.string.total_expense),
                         amount = uiState.totalExpense,
                         color = ExpenseRed
                     )
                     StatisticItem(
-                        label = "余额",
+                        label = stringResource(R.string.balance),
                         amount = uiState.balance,
                         color = if (uiState.balance >= 0) IncomeGreen else ExpenseRed
                     )
@@ -108,7 +110,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
         // 交易列表
         Text(
-            text = "最近交易",
+            text = stringResource(R.string.recent_transactions),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -133,22 +135,22 @@ fun HomeScreen(
 fun TransactionItem(transaction: Transaction, onEdit: () -> Unit, onDelete: () -> Unit) {
     val dateFormat = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
     val decimalFormat = DecimalFormat("#,##0.00")
-    Card (
+    Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ){
-        Row (
+    ) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Row (
+                Row(
                     verticalAlignment = Alignment.CenterVertically
-                ){
+                ) {
                     Text(
                         text = transaction.category,
                         style = MaterialTheme.typography.titleMedium,
@@ -156,7 +158,9 @@ fun TransactionItem(transaction: Transaction, onEdit: () -> Unit, onDelete: () -
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = if (transaction.type == TransactionType.INCOME) "收入" else "支出",
+                        text = if (transaction.type == TransactionType.INCOME) stringResource(R.string.income) else stringResource(
+                            R.string.expense
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (transaction.type == TransactionType.INCOME) IncomeGreen else ExpenseRed
                     )
@@ -180,7 +184,11 @@ fun TransactionItem(transaction: Transaction, onEdit: () -> Unit, onDelete: () -
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = "${if (transaction.type == TransactionType.INCOME) "+" else "-"}¥${decimalFormat.format(transaction.amount)}",
+                    text = "${if (transaction.type == TransactionType.INCOME) "+" else "-"}¥${
+                        decimalFormat.format(
+                            transaction.amount
+                        )
+                    }",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (transaction.type == TransactionType.INCOME) IncomeGreen else ExpenseRed
@@ -190,14 +198,14 @@ fun TransactionItem(transaction: Transaction, onEdit: () -> Unit, onDelete: () -
                     IconButton(onClick = onEdit) {
                         Icon(
                             Icons.Default.Edit,
-                            contentDescription = "编辑",
+                            contentDescription = stringResource(R.string.edit),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                     IconButton(onClick = onDelete) {
                         Icon(
                             Icons.Default.Delete,
-                            contentDescription = "删除",
+                            contentDescription = stringResource(R.string.delete),
                             tint = ExpenseRed
                         )
                     }
