@@ -2,8 +2,6 @@ package com.xiaomai.financeapp.repository
 
 import com.xiaomai.financeapp.data.dao.CategoryDao
 import com.xiaomai.financeapp.data.dao.CategoryTotal
-import com.xiaomai.financeapp.data.dao.DailyTrendData
-import com.xiaomai.financeapp.data.dao.MonthlyTrendData
 import com.xiaomai.financeapp.data.dao.TransactionDao
 import com.xiaomai.financeapp.data.entity.Category
 import com.xiaomai.financeapp.data.entity.DailyTrend

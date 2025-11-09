@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -67,7 +65,6 @@ import com.xiaomai.financeapp.ui.theme.IncomeGreen
 import com.xiaomai.financeapp.viewmodel.TransactionViewModel
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
@@ -200,7 +197,7 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
         // 时间周期选择
 
         item {
-            Card(
+            androidx.compose.material3.Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
@@ -271,7 +268,7 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
         // 总览统计
 
         item {
-            Card(
+            androidx.compose.material3.Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
@@ -312,7 +309,7 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
         }
         // 分类统计选择
         item {
-            Card(
+            androidx.compose.material3.Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
@@ -347,7 +344,7 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
         
         // 图表类型选择器
         item {
-            Card(
+            androidx.compose.material3.Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
@@ -393,7 +390,7 @@ fun StatisticsScreen(viewModel: TransactionViewModel) {
             }
             
             if (categoryTotals.isNotEmpty()) {
-                Card(
+                androidx.compose.material3.Card(
                     modifier = Modifier.fillMaxWidth(),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
@@ -527,7 +524,7 @@ fun CategoryTotalItem(
 ) {
     val decimalFormat = DecimalFormat("#,##0.00")
     val percentage = if (totalAmount > 0) (categoryTotal.total / totalAmount) * 100 else 0.0
-    Card(
+    androidx.compose.material3.Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
